@@ -1,2 +1,2 @@
-# sempOS
-interface license generation shell script
+# SempOS
+projects,tools or demo of SempOS
