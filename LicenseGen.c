@@ -20,14 +20,14 @@ typedef unsigned long long  UINT64;
 #pragma pack(1)
 typedef struct
 {
-    UINT64 type: 10;           /* ÀàÐÍ IF_INDEX_TYPE_E */
+    UINT64 type: 10;           /* ç±»åž‹ IF_INDEX_TYPE_E */
     UINT64     :4;
-    UINT64 /*chassis*/: 10;    /* »úÏäºÅ */
-    UINT64 slot: 10;           /* ²ÛÎ»ºÅ */
-    UINT64 pos:  10;           /* Î»ÖÃºÅ */
-    UINT64 port: 10;           /* ¶Ë¿ÚºÅ */
-    UINT64 iline:1;            /* ÏßÂ·ÓÐÐ§±êÊ¶ */
-    UINT64 line: 9;            /* ÏßÂ·ºÅ */
+    UINT64 /*chassis*/: 10;    /* æœºç®±å· */
+    UINT64 slot: 10;           /* æ§½ä½å· */
+    UINT64 pos:  10;           /* ä½ç½®å· */
+    UINT64 port: 10;           /* ç«¯å£å· */
+    UINT64 iline:1;            /* çº¿è·¯æœ‰æ•ˆæ ‡è¯† */
+    UINT64 line: 9;            /* çº¿è·¯å· */
 } IF_INDEX_T;
 #pragma pack()
 
@@ -178,7 +178,7 @@ static int parseLine(char *line, IF_INDEX_T *interface, char *identifier)
     char *pIf   SAFE_ALLOCA(pIf, strlen(line)+1);
     char *pID   SAFE_ALLOCA(pID, strlen(line)+1);
 
-    //½âÎö½Ó¿Ú±àºÅ
+    //è§£æžæŽ¥å£ç¼–å·
     if (!getRow(line, 0, &pStart, &pEnd))
     {
         return -1;
@@ -193,7 +193,7 @@ static int parseLine(char *line, IF_INDEX_T *interface, char *identifier)
     *interface = idx;
     printf("interface: %s -> %d/%d/%d.%d\n", pIf, idx.slot, idx.pos, idx.port, idx.line);
 
-    //½âÎö½Ó¿ÚÊ¶±ðÂë
+    //è§£æžæŽ¥å£è¯†åˆ«ç 
     if (!getRow(line, 3, &pStart, &pEnd))
     {
         return -1;
@@ -288,15 +288,15 @@ static const char codeMap[][16] =
     { '9', '7', '2', 'b', '3', '1', 'e', 'a', '0', 'd', 'f', '4', 'c', '6', '8', '5' },
 };
 /*
- * Ä£·ÂDES¼ÓÃÜÖÐÓÃµ½S-box½øÐÐ×Ö·ûÌæ»»Íê³É¼ÓÃÜ
+ * æ¨¡ä»¿DESåŠ å¯†ä¸­ç”¨åˆ°S-boxè¿›è¡Œå­—ç¬¦æ›¿æ¢å®ŒæˆåŠ å¯†
  */
 UINT8 asc_to_hex(UINT8 ch)
 {
     if( ch >= '0' && ch <= '9')
         ch -= '0';
-    else if( ch >= 'A' && ch <= 'Z' )//´óÐ´×ÖÄ¸
+    else if( ch >= 'A' && ch <= 'Z' )//å¤§å†™å­—æ¯
         ch -= 0x37;
-    else if( ch >= 'a' && ch <= 'z' )//Ð¡Ð´×ÖÄ¸
+    else if( ch >= 'a' && ch <= 'z' )//å°å†™å­—æ¯
         ch -= 0x57;
     else ch = 0xff;
     return ch;
@@ -417,14 +417,14 @@ static int licenseGen(char *identifier, char *license, UINT32 len)
 {
     int ret = 0;
 
-    //Éú³ÉMD5ÊäÈëÂë
+    //ç”ŸæˆMD5è¾“å…¥ç 
 #define INPUTCODE_LEN       (sizeof(identifier) + 4 + 100)
 #define LICENSE_EXPAND_KEY  "0000"
 #define LICENSE_PRIV_KEY    "002145"
     char *inputCode     SAFE_ALLOCA(inputCode, INPUTCODE_LEN);
     snprintf(inputCode, INPUTCODE_LEN, "%s%s%s", identifier, LICENSE_EXPAND_KEY, LICENSE_PRIV_KEY);
 
-    //Éú³Élicense
+    //ç”Ÿæˆlicense
     ret = md5(inputCode, license, len);
 
     return ret;
