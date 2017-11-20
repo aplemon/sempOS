@@ -20,14 +20,14 @@ typedef unsigned long long  UINT64;
 #pragma pack(1)
 typedef struct
 {
-    UINT64 type: 10;           /* 类型 IF_INDEX_TYPE_E */
+    UINT64 type: 10;
     UINT64     :4;
-    UINT64 /*chassis*/: 10;    /* 机箱号 */
-    UINT64 slot: 10;           /* 槽位号 */
-    UINT64 pos:  10;           /* 位置号 */
-    UINT64 port: 10;           /* 端口号 */
-    UINT64 iline:1;            /* 线路有效标识 */
-    UINT64 line: 9;            /* 线路号 */
+    UINT64 /*chassis*/: 10;
+    UINT64 slot: 10;
+    UINT64 pos:  10;
+    UINT64 port: 10;
+    UINT64 iline:1;
+    UINT64 line: 9;
 } IF_INDEX_T;
 #pragma pack()
 
@@ -178,7 +178,6 @@ static int parseLine(char *line, IF_INDEX_T *interface, char *identifier)
     char *pIf   SAFE_ALLOCA(pIf, strlen(line)+1);
     char *pID   SAFE_ALLOCA(pID, strlen(line)+1);
 
-    //解析接口编号
     if (!getRow(line, 0, &pStart, &pEnd))
     {
         return -1;
@@ -193,7 +192,6 @@ static int parseLine(char *line, IF_INDEX_T *interface, char *identifier)
     *interface = idx;
     printf("interface: %s -> %d/%d/%d.%d\n", pIf, idx.slot, idx.pos, idx.port, idx.line);
 
-    //解析接口识别码
     if (!getRow(line, 3, &pStart, &pEnd))
     {
         return -1;
@@ -250,12 +248,15 @@ static void parse(FILE *fp)
             isFirst = 1;
             slot = interface.slot;
         }
-        if (isFirst && !access(filePath, F_OK))
+        if (isFirst)
         {
             isFirst = 0;
-            char cmd[128] = { 0 };
-            snprintf(cmd, sizeof(cmd), "rm -rf %s", filePath);
-            system(cmd);
+            if (!access(filePath, F_OK))
+            {
+                char cmd[128] = { 0 };
+                snprintf(cmd, sizeof(cmd), "rm -rf %s", filePath);
+                system(cmd);
+            }
         }
         if ((fp1 = fopen(filePath, "a+")) == NULL)
         {
@@ -277,6 +278,7 @@ static void parse(FILE *fp)
         } while (0);
 
         fclose(fp1);
+        sync();
     }
     return;
 }
@@ -287,16 +289,14 @@ static const char codeMap[][16] =
     { 'a', '9', '6', '8', '7', 'd', '0', '5', 'e', '3', 'c', '1', 'b', '2', 'f', '4' },
     { '9', '7', '2', 'b', '3', '1', 'e', 'a', '0', 'd', 'f', '4', 'c', '6', '8', '5' },
 };
-/*
- * 模仿DES加密中用到S-box进行字符替换完成加密
- */
+
 UINT8 asc_to_hex(UINT8 ch)
 {
     if( ch >= '0' && ch <= '9')
         ch -= '0';
-    else if( ch >= 'A' && ch <= 'Z' )//大写字母
+    else if( ch >= 'A' && ch <= 'Z' )
         ch -= 0x37;
-    else if( ch >= 'a' && ch <= 'z' )//小写字母
+    else if( ch >= 'a' && ch <= 'z' )
         ch -= 0x57;
     else ch = 0xff;
     return ch;
@@ -417,14 +417,12 @@ static int licenseGen(char *identifier, char *license, UINT32 len)
 {
     int ret = 0;
 
-    //生成MD5输入码
 #define INPUTCODE_LEN       (sizeof(identifier) + 4 + 100)
 #define LICENSE_EXPAND_KEY  "0000"
 #define LICENSE_PRIV_KEY    "002145"
     char *inputCode     SAFE_ALLOCA(inputCode, INPUTCODE_LEN);
     snprintf(inputCode, INPUTCODE_LEN, "%s%s%s", identifier, LICENSE_EXPAND_KEY, LICENSE_PRIV_KEY);
 
-    //生成license
     ret = md5(inputCode, license, len);
 
     return ret;
